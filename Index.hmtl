@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quiz Culture Générale</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: linear-gradient(160deg, #7B2FF7 0%, #F72585 55%, #FF9E00 100%);
+    font-family: 'Nunito', sans-serif;
+    color: #2D1B4E;
+  }
+  .display { font-family: 'Baloo 2', sans-serif; }
+  .card {
+    width: 100%;
+    max-width: 380px;
+    border-radius: 24px;
+    background: #FFF8F0;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    overflow: hidden;
+  }
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: #2D1B4E;
+  }
+  .topbar span.title { color: #FFD93D; font-size: 14px; font-weight: 800; letter-spacing: 0.5px; }
+  .lives span { color: #4a3a6b; font-size: 17px; margin-left: 3px; }
+  .lives span.active { color: #FF6B9D; text-shadow: 0 0 8px rgba(255,107,157,0.7); }
+  .content { padding: 26px; min-height: 400px; display: flex; flex-direction: column; justify-content: center; }
+  .center { text-align: center; }
+  h1.display { font-size: 26px; line-height: 1.5; margin: 0 0 16px; font-weight: 800; color: #2D1B4E; }
+  h1.display .accent { color: #F72585; }
+  p.sub { font-size: 14px; color: #6b5a8a; margin-bottom: 24px; }
+  button.big {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 15px;
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    color: #fff;
+  }
+  .btn-start { background: #F72585; box-shadow: 0 5px 0 #b5106a; }
+  .btn-replay { background: #7B2FF7; box-shadow: 0 5px 0 #521fac; }
+  .row-top { display: flex; justify-content: space-between; font-size: 13px; color: #6b5a8a; margin-bottom: 8px; font-weight: 600; }
+  .row-top .score { color: #F72585; }
+  .progress-bg { width: 100%; height: 10px; border-radius: 5px; background: #eee0f7; overflow: hidden; margin-bottom: 20px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #FFD93D, #F72585); transition: width .3s; }
+  .question { font-size: 17px; font-weight: 700; min-height: 60px; margin-bottom: 20px; color: #2D1B4E; }
+  .option {
+    width: 100%;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 13px 16px;
+    border-radius: 12px;
+    border: 2px solid #eee0f7;
+    background: #ffffff;
+    color: #2D1B4E;
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+  .option.correct { background: #DFF7E3; border-color: #6BCB77; color: #1e6b2e; }
+  .option.wrong { background: #FFE3E3; border-color: #FF6B6B; color: #a3282f; }
+  .score-big { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 36px; color: #F72585; margin: 12px 0; }
+  h2.display { color: #7B2FF7; font-size: 18px; font-weight: 800; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="topbar">
+    <span class="title display">CULTURE-G</span>
+    <div class="lives" id="lives"></div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<script>
+const QUESTIONS = [
+  { q: "Quelle est la capitale de la France ?", options: ["Lyon", "Marseille", "Paris", "Toulouse"], a: 2 },
+  { q: "Combien font 5 x 6 ?", options: ["25", "30", "35", "36"], a: 1 },
+  { q: "Quelle est la couleur du ciel par temps clair ?", options: ["Vert", "Rouge", "Bleu", "Jaune"], a: 2 },
+  { q: "Combien y a-t-il de jours dans une semaine ?", options: ["5", "6", "7", "8"], a: 2 },
+  { q: "Quel animal est surnommé le roi des animaux ?", options: ["Tigre", "Lion", "Éléphant", "Ours"], a: 1 },
+  { q: "Combien y a-t-il de continents ?", options: ["5", "6", "7", "8"], a: 2 },
+  { q: "Quelle planète est la plus proche du Soleil ?", options: ["Vénus", "Mercure", "Mars", "Terre"], a: 1 },
+  { q: "Quel est le plus grand océan du monde ?", options: ["Atlantique", "Indien", "Arctique", "Pacifique"], a: 3 },
+  { q: "Qui a peint la Joconde ?", options: ["Léonard de Vinci", "Picasso", "Michel-Ange", "Monet"], a: 0 },
+  { q: "Combien y a-t-il de jours dans une année bissextile ?", options: ["364", "365", "366", "367"], a: 2 },
+  { q: "Quelle est la langue officielle du Brésil ?", options: ["Espagnol", "Portugais", "Français", "Italien"], a: 1 },
+  { q: "Quel est le plus long fleuve du monde ?", options: ["Amazone", "Nil", "Yangtsé", "Mississippi"], a: 1 },
+  { q: "Qui a été le premier président de la République française ?", options: ["Charles de Gaulle", "Louis-Napoléon Bonaparte", "Adolphe Thiers", "Jules Grévy"], a: 1 },
+  { q: "En quelle année a éclaté la Première Guerre mondiale ?", options: ["1905", "1914", "1918", "1939"], a: 1 },
+  { q: "Combien d'os compte le corps humain adulte ?", options: ["186", "206", "226", "246"], a: 1 },
+  { q: "Quel pays a la forme d'une botte ?", options: ["Espagne", "Grèce", "Italie", "Portugal"], a: 2 },
+  { q: "Qui a écrit 'Les Misérables' ?", options: ["Émile Zola", "Victor Hugo", "Gustave Flaubert", "Honoré de Balzac"], a: 1 },
+  { q: "Quel est le symbole chimique de l'or ?", options: ["Ag", "Au", "Al", "At"], a: 1 },
+  { q: "Quelle est la plus haute montagne du monde ?", options: ["K2", "Mont Blanc", "Everest", "Kilimandjaro"], a: 2 },
+  { q: "En quelle année a eu lieu la Révolution française ?", options: ["1789", "1804", "1848", "1870"], a: 0 },
+  { q: "Quel pays a offert la statue de la Liberté aux États-Unis ?", options: ["Le Royaume-Uni", "L'Espagne", "La France", "L'Italie"], a: 2 },
+  { q: "Quelle est la capitale de l'Australie ?", options: ["Sydney", "Melbourne", "Canberra", "Perth"], a: 2 },
+  { q: "Qui a développé la théorie de la relativité ?", options: ["Newton", "Einstein", "Galilée", "Bohr"], a: 1 },
+  { q: "Quel traité a mis fin à la Première Guerre mondiale ?", options: ["Traité de Versailles", "Traité de Rome", "Traité de Vienne", "Traité de Maastricht"], a: 0 },
+  { q: "Combien de côtés a un hexagone ?", options: ["5", "6", "7", "8"], a: 1 },
+  { q: "Quel empereur français est mort à Sainte-Hélène ?", options: ["Louis XVI", "Napoléon Bonaparte", "Napoléon III", "Charlemagne"], a: 1 },
+  { q: "Quelle est la monnaie officielle du Japon ?", options: ["Won", "Yuan", "Yen", "Ringgit"], a: 2 },
+  { q: "Qui a composé la 9e Symphonie ?", options: ["Mozart", "Bach", "Beethoven", "Chopin"], a: 2 },
+  { q: "Quel est l'organe qui pompe le sang dans le corps ?", options: ["Le foie", "Le cœur", "Le poumon", "Le rein"], a: 1 },
+  { q: "En quelle année le mur de Berlin est-il tombé ?", options: ["1985", "1989", "1991", "1995"], a: 1 },
+  { q: "Quel pharaon est associé au masque funéraire en or le plus célèbre ?", options: ["Ramsès II", "Toutânkhamon", "Akhenaton", "Khéops"], a: 1 },
+  { q: "Quelle est la vitesse de la lumière (arrondie) ?", options: ["150 000 km/s", "300 000 km/s", "500 000 km/s", "1 000 000 km/s"], a: 1 },
+  { q: "Qui a écrit '1984' ?", options: ["Aldous Huxley", "George Orwell", "Ray Bradbury", "Franz Kafka"], a: 1 },
+  { q: "Quel est le plus petit pays du monde ?", options: ["Monaco", "Saint-Marin", "Le Vatican", "Liechtenstein"], a: 2 },
+  { q: "Qui a peint 'Guernica' ?", options: ["Salvador Dalí", "Pablo Picasso", "Joan Miró", "Diego Rivera"], a: 1 },
+  { q: "Quelle bataille marque la défaite finale de Napoléon ?", options: ["Austerlitz", "Trafalgar", "Waterloo", "Iéna"], a: 2 },
+  { q: "Quel est le nom du processus par lequel les plantes produisent de l'énergie ?", options: ["Respiration", "Photosynthèse", "Fermentation", "Digestion"], a: 1 },
+  { q: "Quelle dynastie régnait en Chine juste avant la République ?", options: ["Ming", "Qing", "Tang", "Song"], a: 1 },
+  { q: "Qui a formulé les lois du mouvement et de la gravitation universelle ?", options: ["Einstein", "Newton", "Galilée", "Kepler"], a: 1 },
+  { q: "Quel roi de France est resté sur le trône le plus longtemps ?", options: ["Louis XIV", "François Ier", "Louis XVI", "Henri IV"], a: 0 },
+  { q: "Quel est le nom de la première femme envoyée dans l'espace ?", options: ["Valentina Terechkova", "Sally Ride", "Mae Jemison", "Peggy Whitson"], a: 0 },
+  { q: "Quel accord a créé l'Union européenne en 1993 ?", options: ["Traité de Rome", "Traité de Maastricht", "Traité de Lisbonne", "Traité de Nice"], a: 1 },
+  { q: "Quel est l'élément le plus abondant dans l'univers ?", options: ["Oxygène", "Carbone", "Hydrogène", "Hélium"], a: 2 },
+  { q: "Qui a écrit 'Le Prince', traité de philosophie politique ?", options: ["Machiavel", "Montesquieu", "Voltaire", "Rousseau"], a: 0 },
+  { q: "Quelle guerre a opposé le Nord et le Sud des États-Unis ?", options: ["Guerre d'indépendance", "Guerre de Sécession", "Guerre hispano-américaine", "Guerre de 1812"], a: 1 },
+  { q: "Quel savant a découvert la pénicilline ?", options: ["Louis Pasteur", "Alexander Fleming", "Marie Curie", "Robert Koch"], a: 1 },
+  { q: "Quel philosophe grec fut le maître d'Alexandre le Grand ?", options: ["Socrate", "Platon", "Aristote", "Pythagore"], a: 2 },
+  { q: "En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?", options: ["1965", "1969", "1972", "1975"], a: 1 },
+  { q: "Quel est le nom du traité qui a divisé le monde entre l'Espagne et le Portugal en 1494 ?", options: ["Traité de Tordesillas", "Traité de Westphalie", "Traité d'Utrecht", "Traité de Madrid"], a: 0 },
+  { q: "Quel mathématicien est à l'origine du dernier théorème portant son nom, démontré seulement en 1994 ?", options: ["Fermat", "Euclide", "Gauss", "Riemann"], a: 0 }
+];
+
+const LIVES_START = 3;
+let state = { screen: "start", qIndex: 0, score: 0, lives: LIVES_START, selected: null };
+let currentQuestions = QUESTIONS;
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function renderLives() {
+  const el = document.getElementById("lives");
+  el.innerHTML = "";
+  for (let i = 0; i < state.lives; i++) {
+    const s = document.createElement("span");
+    s.textContent = "♥";
+    s.className = "active";
+    el.appendChild(s);
+  }
+}
+
+function startGame() {
+  currentQuestions = shuffle(QUESTIONS);
+  state = { screen: "play", qIndex: 0, score: 0, lives: LIVES_START, selected: null };
+  render();
+}
+
+function answer(i) {
+  if (state.selected !== null) return;
+  state.selected = i;
+  const correct = i === currentQuestions[state.qIndex].a;
+  if (correct) state.score++;
+  else state.lives--;
+  render();
+
+  setTimeout(() => {
+    const nextIndex = state.qIndex + 1;
+    if (state.lives <= 0 || nextIndex >= currentQuestions.length) {
+      state.screen = "end";
+    } else {
+      if (nextIndex % 10 === 0) state.lives++;
+      state.qIndex = nextIndex;
+      state.selected = null;
+    }
+    render();
+  }, 900);
+}
+
+function render() {
+  renderLives();
+  const c = document.getElementById("content");
+
+  if (state.screen === "start") {
+    c.innerHTML = `
+      <div class="center">
+        <h1 class="display">QUIZ<br><span class="accent">CULTURE G</span></h1>
+        <p class="sub">50 questions de culture générale.<br>Du plus simple au plus corsé. 3 vies.</p>
+        <button class="big btn-start" id="startBtn">JOUER</button>
+      </div>`;
+    document.getElementById("startBtn").onclick = startGame;
+    return;
+  }
+
+  if (state.screen === "play") {
+    const q = currentQuestions[state.qIndex];
+    const pct = (state.qIndex / currentQuestions.length) * 100;
+    let optsHtml = "";
+    q.options.forEach((opt, i) => {
+      let cls = "option";
+      if (state.selected !== null) {
+        if (i === q.a) cls += " correct";
+        else if (i === state.selected) cls += " wrong";
+      }
+      optsHtml += `<button class="${cls}" data-i="${i}" ${state.selected !== null ? "disabled" : ""}>${opt}</button>`;
+    });
+    c.innerHTML = `
+      <div class="row-top"><span>Question ${state.qIndex + 1}/${currentQuestions.length}</span><span class="score">Score : ${state.score}</span></div>
+      <div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="question">${q.q}</div>
+      <div>${optsHtml}</div>`;
+    c.querySelectorAll(".option").forEach(btn => {
+      btn.onclick = () => answer(parseInt(btn.dataset.i));
+    });
+    return;
+  }
+
+  if (state.screen === "end") {
+    const msg = state.score === currentQuestions.length
+      ? "Score parfait, respect !"
+      : state.score >= currentQuestions.length / 2
+      ? "Pas mal du tout."
+      : "Retente ta chance.";
+    c.innerHTML = `
+      <div class="center">
+        <h2 class="display">${state.lives <= 0 ? "PERDU" : "TERMINÉ"}</h2>
+        <div class="score-big">${state.score}/${currentQuestions.length}</div>
+        <p class="sub">${msg}</p>
+        <button class="big btn-replay" id="replayBtn">REJOUER</button>
+      </div>`;
+    document.getElementById("replayBtn").onclick = startGame;
+    return;
+  }
+}
+
+render();
+</script>
+</body>
+</html>
